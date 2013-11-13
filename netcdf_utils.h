@@ -1,6 +1,8 @@
 #include <string>
 #include <netcdfcpp.h>
 
+using namespace std;
+
 bool netcdf_mpas_read_onsphere(string filename);
 double netcdf_mpas_read_sphereradius(string filename);
 int netcdf_mpas_read_dim ( string filename, string dim_name );
