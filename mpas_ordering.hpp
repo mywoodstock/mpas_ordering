@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Tue 12 Nov 2013 03:51:34 PM PST
+ *  Modified: Wed 13 Nov 2013 11:43:34 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -34,14 +34,14 @@ class MPASElementOrder {
 		class MPASElementData {
 			public:
 
-			unsigned int original_index_;			// starts from 0 == index in element_list_
-			unsigned int partition_num_;			// starts from 0
-			unsigned int ordering_index_;			// starts from 0
+			unsigned int original_index_;		// starts from 0 == index in element_list_
+			unsigned int partition_num_;		// starts from 0
+			unsigned int ordering_index_;		// starts from 0
 												// (ordering within a partition)
 			double x_coord_;
 			double y_coord_;
 			double z_coord_;
-			vec_uint_t neighbor_list_;				// list of original neighbor indices
+			vec_uint_t neighbor_list_;			// list of original neighbor indices
 
 			MPASElementData() { }
 			~MPASElementData() { }
@@ -55,8 +55,8 @@ class MPASElementOrder {
 		}; // class MPASElementData
 
 		typedef MPASElementData mpas_element_t;
-		typedef std::map <unsigned int, mpas_element_t> map_mpas_element_t;
-		typedef std::map <unsigned int, unsigned int> map_reverse_index_t;
+		typedef std::vector <mpas_element_t> vec_mpas_element_t;
+		typedef std::map <unsigned int, unsigned int> map_original_index_t;
 
 	public:
 
@@ -72,6 +72,7 @@ class MPASElementOrder {
 	private:
 
 		bool init();
+		bool generate_original_index_map();
 		bool reindex_ordering_index();
 
 		bool reorder_elements_morton_sfc();
@@ -86,9 +87,9 @@ class MPASElementOrder {
 
 		unsigned int num_cells_;				// number of cells
 		unsigned int num_partitions_;			// number of graph partitions
-		map_mpas_element_t element_list_;		// list of all elements ordered with "map_index"
-		map_reverse_index_t original_index_map_;	// map from "map_index" to original_index_
-		partition_map_t partition_list_;		// partitions with sorted element indices
+		vec_mpas_element_t element_list_;		// list of all elements ordered with "map_index"
+		map_original_index_t original_index_map_;	// map from "map_index" to original_index_
+		partition_map_t partition_list_;		// partitions with sorted element original indices
 
 }; // class MPASElementOrder
 

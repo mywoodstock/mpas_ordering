@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Tue 12 Nov 2013 04:09:03 PM PST
+ *  Modified: Wed 13 Nov 2013 11:44:34 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -106,17 +106,22 @@ bool MPASElementOrder::init() {
 			ctemp = strtok(NULL, " ");
 		} // while
 
-		element_list_.insert(cell);
+		element_list_.push_back(cell);
 	} // for
-
-	//std::sort(element_list_.begin(), element_list_.end(), comp_umap_elements);
 
 	graph_f.close();
 	if(num_partitions_ != 1) parts_f.close();
 
 	num_partitions_ = partition_list_.size();
-	reindex_ordering_index();					// to convert order index to within partitions
-	//sort_elements();							// reorder based on (partition_num_, ordering_index_)
+
+	// sort the vector according to the current ordering (partition, ordering)
+	std::sort(element_list_.begin(), element_list_.end());
+	// generate the original index map
+	generate_original_index_map();
+	// reorder partition element lists according to current element ordering
+	//reorder_partition_elements();
+	// generate new order_index_ based on within partition index
+	reindex_ordering_index();	// to convert order index to within partitions
 
 	delete[] z_cells;
 	delete[] y_cells;
@@ -125,9 +130,26 @@ bool MPASElementOrder::init() {
 	return true;
 } // MPASElementOrder::init()
 
-MPASElementOrder::set_mpas_element_t& MPASElementOrder::set_mpas_element_t::operator[](unsigned int i) {
 
-} // MPASElementOrder::set_mpas_element_t::operator[]()
+//MPASElementOrder::set_mpas_element_t& MPASElementOrder::set_mpas_element_t::operator[](unsigned int i) {
+//} // MPASElementOrder::set_mpas_element_t::operator[]()
+
+
+// generate map from original index to index in element_list_, assume element_list_ is sorted
+bool MPASElementOrder::generate_original_index_map() {
+	original_index_map_.clear();
+	unsigned int curr_index = 0;
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei)
+		original_index_map_[(*ei).original_index_] = curr_index ++;
+	return true;
+} // MPASElementOrder::generate_original_index_map()
+
+
+// reorder the element lists in partition_list_ according to the current element ordering
+// ... is this really needed? probably not
+//bool MPASElementOrder::reorder_partition_elements() {
+//	return true;
+//} // MPASElementOrder::reorder_partition_elements()
 
 
 // reindex the ordering_index_ based on the order in partition_list_
@@ -135,7 +157,7 @@ bool MPASElementOrder::reindex_ordering_index() {
 	for(partition_map_t::iterator pi = partition_list_.begin(); pi != partition_list_.end(); ++ pi) {
 		unsigned int part_index = 0;
 		for(vec_uint_t::iterator ei = (*pi).second.begin(); ei != (*pi).second.end(); ++ ei) {
-			element_list_[*ei].ordering_index_ = part_index ++;
+			element_list_[original_index_map_[*ei]].ordering_index_ = part_index ++;
 		} // for
 	} // for
 	return true;
@@ -167,7 +189,37 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 } // MPASElementOrder::reorder_elements()
 
 
+// write out the graph info and partition files out
 bool MPASElementOrder::save_elements_order(std::string filename_prefix) {
+
+	std::ofstream graph_f(filename_prefix.c_str());
+
+	std::stringstream name;
+	name << filename_prefix << ".part." << partition_list_.size();
+	std::ofstream parts_f(name.str());
+
+	graph_f << element_list_.size();
+	unsigned int num_edges = 0;
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+			ei != element_list_.end(); ++ ei) {
+		num_edges += (*ei).neighbor_list_.size();
+		parts_f << (*ei).partition_num_ << std::endl;
+	} // for
+	num_edges /= 2;
+	graph_f << "\t" << num_edges << std::endl;
+
+	parts_f.close();
+
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+			ei != element_list_.end(); ++ ei) {
+		for(vec_uint_t::const_iterator ni = (*ei).neighbor_list_.begin();
+				ni != (*ei).neighbor_list_.end(); ++ ni) {
+			graph_f << "\t" << (original_index_map_[*ni] + 1);
+		} // for
+		graph_f << std::endl;
+	} // for
+
+	graph_f.close();
 
 	return false;
 } // MPASElementOrder::save_elements_order()
@@ -192,7 +244,7 @@ bool MPASElementOrder::print_all() {
 	std::cout << "** num_cells: " << num_cells_ << std::endl;
 	std::cout << "** num_partitions: " << num_partitions_ << std::endl;
 	std::cout << "** element_list: " << std::endl;
-	for(set_mpas_element_t::iterator i = element_list_.begin(); i != element_list_.end(); ++ i) {
+	for(vec_mpas_element_t::iterator i = element_list_.begin(); i != element_list_.end(); ++ i) {
 		std::cout << "    ";
 		(*i).print_all();
 	} // for
@@ -210,7 +262,7 @@ bool MPASElementOrder::print_all() {
 
 
 bool MPASElementOrder::MPASElementData::print_all() const {
-	std::cout << original_index_ << "\t" << ordering_index_ << "\t" << partition_num_ << "\t"
+	std::cout << original_index_ << "\t" << partition_num_ << "\t" << ordering_index_ << "\t"
 				<< "(" << x_coord_ << ", " << y_coord_ << ", " << z_coord_ << ")\t[ ";
 	for(std::vector<unsigned int>::const_iterator i = neighbor_list_.cbegin();
 			i != neighbor_list_.cend(); ++ i)
