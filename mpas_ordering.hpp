@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Wed 13 Nov 2013 11:43:34 AM PST
+ *  Modified: Tue 10 Dec 2013 07:51:37 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -74,6 +74,10 @@ class MPASElementOrder {
 		bool init();
 		bool generate_original_index_map();
 		bool reindex_ordering_index();
+		bool reorder_grid();
+		//bool reorder_data(int*, int*, int, int, long*, int);
+		//bool reorder_data(double*, double*, int, int, long*, int);
+		template<typename T> bool reorder_data(T*, T*, int, int, long*);
 
 		bool reorder_elements_morton_sfc();
 		bool reorder_elements_hilbert_sfc();

@@ -3,7 +3,7 @@
  *
  *  File: mpas_order.cpp
  *  Created: Nov 12, 2013
- *  Modified: Wed 13 Nov 2013 11:45:32 AM PST
+ *  Modified: Mon 09 Dec 2013 02:24:13 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -25,7 +25,8 @@ int main(int narg, char** args) {
 	} // if-else
 
 	MPASElementOrder my_ordering(args[1], args[2], part_filename);
-	my_ordering.print_all();
+	my_ordering.reorder_elements(XYZ_SORT);
+	//my_ordering.print_all();
 	my_ordering.save_elements_order("hehehehe.info");
 
 	return 0;
