@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Tue 10 Dec 2013 05:49:58 PM PST
+ *  Modified: Wed 11 Dec 2013 01:19:59 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -54,114 +54,10 @@ MPASElementOrder::MPASElementOrder(std::string grid, std::string graph, std::str
 MPASElementOrder::~MPASElementOrder() { }
 
 
-bool comp_umap_elements(const std::pair<int, MPASElementOrder::mpas_element_t>& a,
-					const std::pair<int, MPASElementOrder::mpas_element_t>& b) {
-	return (a.second < b.second);
-} // comp_umap_elements()
-
-
-bool MPASElementOrder::init() {
-	// read in data from grid file
-	// read in graph info
-	// read in partitions
-	
-	num_cells_ = netcdf_mpas_read_dim(netcdf_grid_filename_, "nCells");
-
-	double *x_cells, *y_cells, *z_cells;
-	x_cells = new (std::nothrow) double[num_cells_];
-	y_cells = new (std::nothrow) double[num_cells_];
-	z_cells = new (std::nothrow) double[num_cells_];
-	netcdf_mpas_read_xyzcell(netcdf_grid_filename_, num_cells_, x_cells, y_cells, z_cells);
-
-	std::ifstream graph_f(graph_info_filename_.c_str());
-	//int num_nodes, num_edges;
-	//graph_f >> num_nodes; graph_f >> num_edges;
-	std::string line;
-	std::getline(graph_f, line);
-
-	//if(num_nodes != num_cells_) {
-	//	std::cerr << "error: number of cells do not match" << std::endl;
-	//	return false;
-	//} // if
-
-	std::ifstream parts_f;
-	if(num_partitions_ != 1) parts_f.open(graph_partition_filename_.c_str());
-
-	for(int i = 0; i < num_cells_; ++ i) {
-		MPASElementData cell;
-		cell.original_index_ = i;
-		cell.ordering_index_ = i;
-		if(num_partitions_ != 1) parts_f >> cell.partition_num_;
-		else cell.partition_num_ = 0;
-		cell.x_coord_ = x_cells[i];
-		cell.y_coord_ = y_cells[i];
-		cell.z_coord_ = z_cells[i];
-		partition_list_[cell.partition_num_].push_back(i);
-
-		std::getline(graph_f, line);
-		char* ctemp;
-		ctemp = strtok((char*) line.c_str(), " ");
-		int itemp;
-		while(ctemp != NULL) {
-			itemp = atoi(ctemp);
-			cell.neighbor_list_.push_back(itemp - 1);
-			ctemp = strtok(NULL, " ");
-		} // while
-
-		element_list_.push_back(cell);
-	} // for
-
-	delete[] z_cells;
-	delete[] y_cells;
-	delete[] x_cells;
-
-	graph_f.close();
-	if(num_partitions_ != 1) parts_f.close();
-
-	num_partitions_ = partition_list_.size();
-
-	// sort the vector according to the current ordering (partition, ordering)
-	std::sort(element_list_.begin(), element_list_.end());
-	// generate the original index map
-	generate_original_index_map();
-	// reorder partition element lists according to current element ordering
-	//reorder_partition_elements();
-	// generate new order_index_ based on within partition index
-	reindex_ordering_index();	// to convert order index to within partitions
-
-	return true;
-} // MPASElementOrder::init()
-
-
-
-// generate map from original index to index in element_list_, assume element_list_ is sorted
-bool MPASElementOrder::generate_original_index_map() {
-	original_index_map_.clear();
-	unsigned int curr_index = 0;
-	for(vec_mpas_element_t::const_iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei)
-		//original_index_map_[(*ei).original_index_] = curr_index ++;
-		original_index_map_[curr_index ++] = (*ei).original_index_;
-	return true;
-} // MPASElementOrder::generate_original_index_map()
-
-
-// reorder the element lists in partition_list_ according to the current element ordering
-// ... is this really needed? probably not
-//bool MPASElementOrder::reorder_partition_elements() {
-//	return true;
-//} // MPASElementOrder::reorder_partition_elements()
-
-
-// reindex the ordering_index_ based on the order in partition_list_
-bool MPASElementOrder::reindex_ordering_index() {
-//	for(partition_map_t::iterator pi = partition_list_.begin(); pi != partition_list_.end(); ++ pi) {
-//		unsigned int part_index = 0;
-//		for(vec_uint_t::iterator ei = (*pi).second.begin(); ei != (*pi).second.end(); ++ ei) {
-//			element_list_[original_index_map_[*ei]].ordering_index_ = part_index ++;
-//		} // for
-//	} // for
-	return true;
-} // MPASElementOrder::reindex_ordering_index()
+//bool comp_umap_elements(const std::pair<int, MPASElementOrder::mpas_element_t>& a,
+//					const std::pair<int, MPASElementOrder::mpas_element_t>& b) {
+//	return (a.second < b.second);
+//} // comp_umap_elements()
 
 
 bool MPASElementOrder::reorder_elements(sfc_t sfc) {
@@ -191,52 +87,181 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 
 // write out the graph info and partition files out
 bool MPASElementOrder::save_elements_order(std::string filename_prefix) {
-
-	// create the mapper
+	// create the mappers
 	generate_original_index_map();
 
-//	std::stringstream name;
-//	name << filename_prefix << ".part." << partition_list_.size();
-//	std::ofstream parts_f(name.str());
-//	unsigned int num_edges = 0;
-//	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
-//			ei != element_list_.end(); ++ ei) {
-//		num_edges += (*ei).neighbor_list_.size();
-//		parts_f << (*ei).partition_num_ << std::endl;
-//	} // for
-//	num_edges /= 2;
-//	parts_f.close();
-
-//	std::ofstream graph_f(filename_prefix.c_str());
-//	graph_f << element_list_.size();
-//	graph_f << "\t" << num_edges << std::endl;
-//	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
-//			ei != element_list_.end(); ++ ei) {
-//		for(vec_uint_t::const_iterator ni = (*ei).neighbor_list_.begin();
-//				ni != (*ei).neighbor_list_.end(); ++ ni) {
-//			graph_f << "\t" << (original_index_map_[*ni] + 1);
-//		} // for
-//		graph_f << std::endl;
-//	} // for
-//	graph_f.close();
-
+#ifdef DEBUG
 	for(int i = 0; i < element_list_.size(); ++ i)
 		std::cout << original_index_map_[i] + 1 << " -> " << i + 1 << std::endl;
+#endif
 
 	// reorder stuff in the grid and write a new grid file
-	reorder_grid();
+	reorder_grid(filename_prefix);
+	save_graph_info(filename_prefix);
+	if(num_partitions_ > 1) save_partition_info(filename_prefix);
 
 	return true;
 } // MPASElementOrder::save_elements_order()
 
 
-bool MPASElementOrder::reorder_grid() {
+bool MPASElementOrder::save_graph_info(std::string prefix) {
+	std::stringstream name;
+	if(num_partitions_ > 1)
+		name << prefix << "." << num_partitions_ << ".info";
+	else
+		name << prefix << ".info";
+	std::ofstream graph_f(name.str());
+	graph_f << element_list_.size() << "\t" << num_edges_ << std::endl;
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+			ei != element_list_.end(); ++ ei) {
+		for(vec_uint_t::const_iterator ni = (*ei).neighbor_list_.begin();
+				ni != (*ei).neighbor_list_.end(); ++ ni) {
+			graph_f << "\t" << (current_index_map_[*ni] + 1);
+		} // for
+		graph_f << std::endl;
+	} // for
+	graph_f.close();
+
+	return true;
+} // MPASElementOrder::save_graph_info()
+
+
+bool MPASElementOrder::save_partition_info(std::string prefix) {
+	std::stringstream name;
+	name << prefix << "." << num_partitions_ << ".info.part";
+	std::ofstream parts_f(name.str());
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+			ei != element_list_.end(); ++ ei) {
+		parts_f << (*ei).partition_num_ << std::endl;
+	} // for
+	parts_f.close();
+
+	return true;
+} // MPASElementOrder::save_partition_info()
+
+
+bool MPASElementOrder::init() {
+	// read in data from grid file
+	// read in graph info
+	// read in partitions
+	
+	num_cells_ = netcdf_mpas_read_dim(netcdf_grid_filename_, "nCells");
+
+	double *x_cells, *y_cells, *z_cells;
+	x_cells = new (std::nothrow) double[num_cells_];
+	y_cells = new (std::nothrow) double[num_cells_];
+	z_cells = new (std::nothrow) double[num_cells_];
+	netcdf_mpas_read_xyzcell(netcdf_grid_filename_, num_cells_, x_cells, y_cells, z_cells);
+
+	std::ifstream graph_f(graph_info_filename_.c_str());
+	//int num_nodes, num_edges;
+	//graph_f >> num_nodes; graph_f >> num_edges;
+	std::string line;
+	std::getline(graph_f, line);
+
+	//if(num_nodes != num_cells_) {
+	//	std::cerr << "error: number of cells do not match" << std::endl;
+	//	return false;
+	//} // if
+
+	std::ifstream parts_f;
+	if(num_partitions_ != 1) parts_f.open(graph_partition_filename_.c_str());
+
+	num_edges_ = 0;
+	for(int i = 0; i < num_cells_; ++ i) {
+		MPASElementData cell;
+		cell.original_index_ = i;
+		cell.ordering_index_ = i;
+		if(num_partitions_ != 1) parts_f >> cell.partition_num_;
+		else cell.partition_num_ = 0;
+		cell.x_coord_ = x_cells[i];
+		cell.y_coord_ = y_cells[i];
+		cell.z_coord_ = z_cells[i];
+		//partition_list_[cell.partition_num_].push_back(i);
+
+		std::getline(graph_f, line);
+		char* ctemp;
+		ctemp = strtok((char*) line.c_str(), " ");
+		int itemp;
+		while(ctemp != NULL) {
+			itemp = atoi(ctemp);
+			cell.neighbor_list_.push_back(itemp - 1);
+			ctemp = strtok(NULL, " ");
+		} // while
+		num_edges_ += cell.neighbor_list_.size();
+		element_list_.push_back(cell);
+	} // for
+	num_edges_ = num_edges_ >> 1;
+
+	delete[] z_cells;
+	delete[] y_cells;
+	delete[] x_cells;
+
+	graph_f.close();
+	if(num_partitions_ != 1) parts_f.close();
+
+	//num_partitions_ = partition_list_.size();
+
+	// sort the vector according to the current ordering (partition, ordering)
+	std::sort(element_list_.begin(), element_list_.end());
+	// generate the original index map
+	generate_original_index_map();
+	// reorder partition element lists according to current element ordering
+	//reorder_partition_elements();
+	// generate new order_index_ based on within partition index
+	//reindex_ordering_index();	// to convert order index to within partitions
+	generate_partition_list();
+
+	return true;
+} // MPASElementOrder::init()
+
+
+// generate maps from/to current index in element_list_ to/from original index
+bool MPASElementOrder::generate_original_index_map() {
+	original_index_map_.clear();
+	current_index_map_.clear();
+	unsigned int curr_index = 0;
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei) {
+		original_index_map_[curr_index] = (*ei).original_index_;
+		current_index_map_[(*ei).original_index_] = curr_index;
+		++ curr_index;
+	} // for
+	return true;
+} // MPASElementOrder::generate_original_index_map()
+
+
+bool MPASElementOrder::generate_partition_list() {
+	partition_list_.clear();
+	for(vec_mpas_element_t::const_iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei) {
+		partition_list_[(*ei).partition_num_].push_back((*ei).original_index_);
+	} // for
+	num_partitions_ = partition_list_.size();
+	return true;
+} // MPASElement::generate_partition_list()
+
+
+// reindex the ordering_index_ within each partition according to current order
+bool MPASElementOrder::reindex_ordering_index() {
+	vec_uint_t pcounters(num_partitions_, 0);
+	for(vec_mpas_element_t::iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei) {
+		(*ei).ordering_index_ = pcounters[(*ei).partition_num_] ++;
+	} // for
+	return true;
+} // MPASElementOrder::reindex_ordering_index()
+
+
+bool MPASElementOrder::reorder_grid(std::string prefix) {
+	std::stringstream grid_name;
+	if(num_partitions_ > 1)
+		grid_name << prefix << "." << num_partitions_ << ".nc";
+	else
+		grid_name << prefix << ".nc";
 	#ifdef _64BITOPFFSET
 		NcFile ncid(netcdf_grid_filename_.c_str(), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits);
-		NcFile out_ncid("hehehehe.nc", NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
+		NcFile out_ncid(grid_name.str().c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 	#else
 		NcFile ncid(netcdf_grid_filename_.c_str(), NcFile::ReadOnly);
-		NcFile out_ncid("hehehehe.nc", NcFile::Replace);
+		NcFile out_ncid(grid_name.str().c_str(), NcFile::Replace);
 	#endif
 
 	// read dims
@@ -305,10 +330,6 @@ bool MPASElementOrder::reorder_grid() {
 	NcToken cells_on_cell_token = ncid.get_var("cellsOnCell")->name();
 	NcToken cells_on_vertex_token = ncid.get_var("cellsOnVertex")->name();
 
-	map_original_index_t new_index_map;
-	for(unsigned int i = 0; i < element_list_.size(); ++ i)
-		new_index_map[original_index_map_[i]] = i;
-
 	// read vars and reorder data
 	NcDim *dims[5];
 	long dim_sizes[5];
@@ -331,7 +352,8 @@ bool MPASElementOrder::reorder_grid() {
 		} // for
 		// NOTE: assuming that at most one dimension may be equal to nCells
 		// NOTE: assuming that no variable has more than 5 dimensions
-		NcVar *out_var_id = out_ncid.add_var((*var_id).name(), (*var_id).type(), num_dims, (const NcDim**)dims);
+		NcVar *out_var_id = out_ncid.add_var((*var_id).name(), (*var_id).type(),
+												num_dims, (const NcDim**)dims);
 
 		int *int_buff_in = NULL, *int_buff_out = NULL;
 		double *dbl_buff_in = NULL, *dbl_buff_out = NULL;
@@ -364,7 +386,8 @@ bool MPASElementOrder::reorder_grid() {
 						(*var_id).name() == cells_on_cell_token ||
 						(*var_id).name() == cells_on_vertex_token) {
 					for(unsigned int i = 0; i < size; ++ i)
-						if(int_buff_out[i] > 0) int_buff_out[i] = new_index_map[int_buff_out[i] - 1] + 1;
+						if(int_buff_out[i] > 0)
+							int_buff_out[i] = current_index_map_[int_buff_out[i] - 1] + 1;
 				} // for
 				(*out_var_id).put(int_buff_out, dim_sizes);
 				if(to_reorder) delete[] int_buff_out;
