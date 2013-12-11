@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Tue 10 Dec 2013 07:53:01 AM PST
+ *  Modified: Tue 10 Dec 2013 05:31:27 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -139,7 +139,8 @@ bool MPASElementOrder::generate_original_index_map() {
 	original_index_map_.clear();
 	unsigned int curr_index = 0;
 	for(vec_mpas_element_t::const_iterator ei = element_list_.begin(); ei != element_list_.end(); ++ ei)
-		original_index_map_[(*ei).original_index_] = curr_index ++;
+		//original_index_map_[(*ei).original_index_] = curr_index ++;
+		original_index_map_[curr_index ++] = (*ei).original_index_;
 	return true;
 } // MPASElementOrder::generate_original_index_map()
 
@@ -153,12 +154,12 @@ bool MPASElementOrder::generate_original_index_map() {
 
 // reindex the ordering_index_ based on the order in partition_list_
 bool MPASElementOrder::reindex_ordering_index() {
-	for(partition_map_t::iterator pi = partition_list_.begin(); pi != partition_list_.end(); ++ pi) {
-		unsigned int part_index = 0;
-		for(vec_uint_t::iterator ei = (*pi).second.begin(); ei != (*pi).second.end(); ++ ei) {
-			element_list_[original_index_map_[*ei]].ordering_index_ = part_index ++;
-		} // for
-	} // for
+//	for(partition_map_t::iterator pi = partition_list_.begin(); pi != partition_list_.end(); ++ pi) {
+//		unsigned int part_index = 0;
+//		for(vec_uint_t::iterator ei = (*pi).second.begin(); ei != (*pi).second.end(); ++ ei) {
+//			element_list_[original_index_map_[*ei]].ordering_index_ = part_index ++;
+//		} // for
+//	} // for
 	return true;
 } // MPASElementOrder::reindex_ordering_index()
 
@@ -191,33 +192,36 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 // write out the graph info and partition files out
 bool MPASElementOrder::save_elements_order(std::string filename_prefix) {
 
-	std::stringstream name;
-	name << filename_prefix << ".part." << partition_list_.size();
-	std::ofstream parts_f(name.str());
-	unsigned int num_edges = 0;
-	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
-			ei != element_list_.end(); ++ ei) {
-		num_edges += (*ei).neighbor_list_.size();
-		parts_f << (*ei).partition_num_ << std::endl;
-	} // for
-	num_edges /= 2;
-	parts_f.close();
-
-	std::ofstream graph_f(filename_prefix.c_str());
-	graph_f << element_list_.size();
-	graph_f << "\t" << num_edges << std::endl;
-	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
-			ei != element_list_.end(); ++ ei) {
-		for(vec_uint_t::const_iterator ni = (*ei).neighbor_list_.begin();
-				ni != (*ei).neighbor_list_.end(); ++ ni) {
-			graph_f << "\t" << (original_index_map_[*ni] + 1);
-		} // for
-		graph_f << std::endl;
-	} // for
-	graph_f.close();
-
 	// create the mapper
 	generate_original_index_map();
+
+//	std::stringstream name;
+//	name << filename_prefix << ".part." << partition_list_.size();
+//	std::ofstream parts_f(name.str());
+//	unsigned int num_edges = 0;
+//	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+//			ei != element_list_.end(); ++ ei) {
+//		num_edges += (*ei).neighbor_list_.size();
+//		parts_f << (*ei).partition_num_ << std::endl;
+//	} // for
+//	num_edges /= 2;
+//	parts_f.close();
+
+//	std::ofstream graph_f(filename_prefix.c_str());
+//	graph_f << element_list_.size();
+//	graph_f << "\t" << num_edges << std::endl;
+//	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
+//			ei != element_list_.end(); ++ ei) {
+//		for(vec_uint_t::const_iterator ni = (*ei).neighbor_list_.begin();
+//				ni != (*ei).neighbor_list_.end(); ++ ni) {
+//			graph_f << "\t" << (original_index_map_[*ni] + 1);
+//		} // for
+//		graph_f << std::endl;
+//	} // for
+//	graph_f.close();
+
+	for(int i = 0; i < element_list_.size(); ++ i)
+		std::cout << original_index_map_[i] + 1 << " -> " << i + 1 << std::endl;
 
 	// reorder stuff in the grid and write a new grid file
 	reorder_grid();
@@ -240,6 +244,7 @@ bool MPASElementOrder::reorder_grid() {
 	for(int i = 0; i < ncid.num_dims(); ++ i) {
 		NcDim *dim_id = ncid.get_dim(i);
 		//dims[(*dim_id).name()] = (*dim_id).size();
+		// check for unlimited ........................................
 		out_ncid.add_dim((*dim_id).name(), (*dim_id).size());
 	} // for
 
@@ -294,6 +299,14 @@ bool MPASElementOrder::reorder_grid() {
 	} // for
 
 	NcToken cell_dim_token = ncid.get_dim("nCells")->name();
+	NcToken cell_id_token = ncid.get_var("indexToCellID")->name();
+	NcToken cells_on_edge_token = ncid.get_var("cellsOnEdge")->name();
+	NcToken cells_on_cell_token = ncid.get_var("cellsOnCell")->name();
+	NcToken cells_on_vertex_token = ncid.get_var("cellsOnVertex")->name();
+
+	map_original_index_t new_index_map;
+	for(unsigned int i = 0; i < element_list_.size(); ++ i)
+		new_index_map[original_index_map_[i]] = i;
 
 	// read vars and reorder data
 	NcDim *dims[5];
@@ -310,7 +323,7 @@ bool MPASElementOrder::reorder_grid() {
 			dim_sizes[j] = (*dims[j]).size();
 			size *= (*dims[j]).size();
 			var_dims[(*dims[j]).name()] = (*dims[j]).size();
-			if((*dims[j]).name() == cell_dim_token) {
+			if((*dims[j]).name() == cell_dim_token && (*var_id).name() != cell_id_token) {
 				to_reorder = true;
 				cell_dim_num = j;
 			} // if
@@ -342,11 +355,18 @@ bool MPASElementOrder::reorder_grid() {
 				if(to_reorder) {
 					int_buff_out = new (std::nothrow) int[size];
 					reorder_data<int>(int_buff_in, int_buff_out, cell_dim_num, num_dims, dim_sizes);
-					(*out_var_id).put(int_buff_out, dim_sizes);
-					delete[] int_buff_out;
 				} else {
-					(*out_var_id).put(int_buff_in, dim_sizes);
+					int_buff_out = int_buff_in;
 				} // if-else
+				// update the cell numbers in cellsOnEdge, cellsOnCell, cellsOnVertex
+				if((*var_id).name() == cells_on_edge_token ||
+						(*var_id).name() == cells_on_cell_token ||
+						(*var_id).name() == cells_on_vertex_token) {
+					for(unsigned int i = 0; i < size; ++ i)
+						if(int_buff_out[i] > 0) int_buff_out[i] = new_index_map[int_buff_out[i] - 1] + 1;
+				} // for
+				(*out_var_id).put(int_buff_out, dim_sizes);
+				if(to_reorder) delete[] int_buff_out;
 				delete[] int_buff_in;
 				break;
 
@@ -368,6 +388,7 @@ bool MPASElementOrder::reorder_grid() {
 				std::cerr << "error: unknown variable type" << std::endl;
 				exit(1);
 		} // switch
+
 	} // for
 	
 	out_ncid.close();
@@ -458,94 +479,6 @@ bool MPASElementOrder::reorder_data(T* in, T* out, int cell_dim_num, int num_dim
 	return true;
 } // MPASElementOrder::reorder_data()
 
-/*
-bool MPASElementOrder::reorder_data(int* in, int* out, int cell_dim_num, int num_dims, long* dim_sizes) {
-	// NOTE: assuming no more than three dimensions
-	// NOTE: assuming nCells is either first or second dimension
-	switch(num_dims) {
-		case 1:
-			for(unsigned int i = 0; i < num_cells_; ++ i) {
-				out[i] = in[original_index_map_[i]];
-			} // for
-			break;
-
-		case 2:
-			switch(cell_dim_num) {
-				case 0:
-					offset = dim_sizes[1];
-					for(unsigned int i = 0; i < num_cells_; ++ i) {
-						memcpy(&out[i * offset], &in[original_index_map_[i] * offset],
-								offset * sizeof(int));
-					} // for
-					break;
-
-				case 1:
-					for(unsigned int i = 0; i < dim_sizes[0]; ++ i) {
-						for(unsigned int j = 0; j < dim_sizes[1]; ++ j) {
-							out[i * dim_sizes[1] + j] = in[i * dim_sizes[1] + original_index_map_[j]];
-						} // for
-					} // for
-					break;
-
-				default:
-					std::cerr << "error: mismatch in num_dims and cell_dim_num" << std::endl;
-					exit(1);
-			} // switch
-			break;
-
-		case 3:
-			switch(cell_dim_num) {
-				case 0:
-					offset = dim_sizes[1] * dim_sizes[2];
-					for(unsigned int i = 0; i < dim_sizes[0]; ++ i) {
-						memcpy(&out[i * offset], &in[original_index_map_[i] * offset],
-								offset * sizeof(int));
-					} // for
-					break;
-
-				case 1:
-					offset = dim_sizes[2];
-					for(unsigned int i = 0; i < dim_sizes[0]; ++ i) {
-						for(unsigned int j = 0; j < dim_sizes[1]; ++ j) {
-							memcpy(&out[(i * dim_sizes[1] + j) * offset],
-									&in[(i * dim_sizes[1] + original_index_map_[j]) * offset],
-									offset * sizeof(int));
-						} // for
-					} // for
-					break;
-
-				case 2:
-					for(unsigned int i = 0; i < dim_sizes[0]; ++ i) {
-						for(unsigned int j = 0; j < dim_sizes[1]; ++ j) {
-							offset = (i * dim_sizes[1] + j) * dim_sizes[2];
-							for(unsigned int k = 0; k < dim_sizes[2]; ++ k) {
-								out[offset + k] = in[offset + original_index_map_[k]];
-							} // for
-						} // for
-					} // for
-					break;
-
-				default:
-					std::cerr << "error: mismatch in num_dims and cell_dim_num" << std::endl;
-					exit(1);
-			} // switch
-			break;
-
-		default:
-			std::cerr << "error: case with more than 3 dimensions not implemented" << std::endl;
-			exit(1);
-	} // switch
-	return true;
-} // MPASElementOrder::reorder_data()
-
-
-bool MPASElementOrder::reorder_data(double* in, double* out, int cell_dim_num, int num_dims, long* dim_sizes, int size) {
-	for(unsigned int i = 0; i < num_cells_; ++ i) {
-		out[i] = in[original_index_map_[i]];
-	} // for
-	return true;
-} // MPASElementOrder::reorder_data()
-*/
 
 bool MPASElementOrder::reorder_elements_morton_sfc() {
 	return false;
@@ -568,7 +501,37 @@ struct XYZComp {
 	} // operator()
 };
 
+struct XComp {
+	bool operator()(const MPASElementOrder::MPASElementData& a,
+					const MPASElementOrder::MPASElementData& b) {
+		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
+				(a.x_coord_ < b.x_coord_);
+	} // operator()
+};
+
+struct YComp {
+	bool operator()(const MPASElementOrder::MPASElementData& a,
+					const MPASElementOrder::MPASElementData& b) {
+		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
+				(a.y_coord_ < b.y_coord_);
+	} // operator()
+};
+
+struct ZComp {
+	bool operator()(const MPASElementOrder::MPASElementData& a,
+					const MPASElementOrder::MPASElementData& b) {
+		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
+				(a.z_coord_ < b.z_coord_);
+	} // operator()
+};
+
 bool MPASElementOrder::reorder_elements_xyz_sort() {
+	//ZComp z_comp;
+	//std::sort(element_list_.begin(), element_list_.end(), z_comp);
+	//YComp y_comp;
+	//std::sort(element_list_.begin(), element_list_.end(), y_comp);
+	//XComp x_comp;
+	//std::sort(element_list_.begin(), element_list_.end(), x_comp);
 	XYZComp xyz_comp;
 	std::sort(element_list_.begin(), element_list_.end(), xyz_comp);
 	return reindex_ordering_index();
