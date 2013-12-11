@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Tue 10 Dec 2013 05:31:27 PM PST
+ *  Modified: Tue 10 Dec 2013 05:49:58 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -240,12 +240,13 @@ bool MPASElementOrder::reorder_grid() {
 	#endif
 
 	// read dims
-	//std::map <NcToken, int> dims;
 	for(int i = 0; i < ncid.num_dims(); ++ i) {
 		NcDim *dim_id = ncid.get_dim(i);
-		//dims[(*dim_id).name()] = (*dim_id).size();
-		// check for unlimited ........................................
-		out_ncid.add_dim((*dim_id).name(), (*dim_id).size());
+		// check if unlimited
+		if((*dim_id).is_unlimited())
+			out_ncid.add_dim((*dim_id).name());
+		else
+			out_ncid.add_dim((*dim_id).name(), (*dim_id).size());
 	} // for
 
 	// read in attributes
