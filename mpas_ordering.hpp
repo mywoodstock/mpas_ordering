@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Wed 11 Dec 2013 12:54:22 PM PST
+ *  Modified: Fri 13 Dec 2013 01:38:01 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -18,6 +18,7 @@
 
 enum sfc_t {
 	NONE,										// no reordering - original
+	RANDOM,
 	MORTON_SFC,									// morton ordering
 	HILBERT_SFC,								// hilbert ordering
 	XYZ_SORT									// sort based on x, y, z coords
@@ -30,6 +31,18 @@ class MPASElementOrder {
 	public:
 		typedef std::vector <unsigned int> vec_uint_t;
 		typedef std::map <int, vec_uint_t> partition_map_t;
+
+		class MPASElementCoord {
+			public:
+				double x_;
+				double y_;
+				double z_;
+				MPASElementCoord(): x_(0.0), y_(0.0), z_(0.0) { }
+				MPASElementCoord(double x, double y, double z): x_(x), y_(y), z_(z) { }
+				~MPASElementCoord() { }
+		}; // class MPASElementCoord
+
+		typedef MPASElementCoord mpas_element_coord_t;
 
 		class MPASElementData {
 			public:
@@ -84,6 +97,7 @@ class MPASElementOrder {
 		bool reorder_elements_morton_sfc();
 		bool reorder_elements_hilbert_sfc();
 		bool reorder_elements_xyz_sort();
+		bool reorder_elements_random();
 
 		// data
 

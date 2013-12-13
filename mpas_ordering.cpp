@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Fri 13 Dec 2013 11:01:39 AM PST
+ *  Modified: Fri 13 Dec 2013 01:40:00 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -62,6 +62,9 @@ MPASElementOrder::~MPASElementOrder() { }
 
 bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 	switch(sfc) {
+		case RANDOM:
+			return reorder_elements_random();
+
 		case MORTON_SFC:
 			return reorder_elements_morton_sfc();
 
