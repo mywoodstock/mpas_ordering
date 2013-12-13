@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Wed 11 Dec 2013 01:19:59 PM PST
+ *  Modified: Fri 13 Dec 2013 11:01:39 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -514,7 +514,7 @@ bool MPASElementOrder::reorder_elements_hilbert_sfc() {
 } // MPASElementOrder::reorder_elements_hilbert_sfc()
 
 
-struct XYZComp {
+/*struct XYZComp {
 	bool operator()(const MPASElementOrder::MPASElementData& a,
 					const MPASElementOrder::MPASElementData& b) {
 		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
@@ -560,7 +560,7 @@ bool MPASElementOrder::reorder_elements_xyz_sort() {
 	std::sort(element_list_.begin(), element_list_.end(), xyz_comp);
 	return reindex_ordering_index();
 } // MPASElementOrder::reorder_elements_xyz_sort()
-
+*/
 
 bool MPASElementOrder::print_all() {
 	std::cout << "** num_cells: " << num_cells_ << std::endl;

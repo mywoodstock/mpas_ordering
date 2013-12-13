@@ -3,7 +3,7 @@
  *
  *  File: mpas_order.cpp
  *  Created: Nov 12, 2013
- *  Modified: Fri 13 Dec 2013 10:23:10 AM PST
+ *  Modified: Fri 13 Dec 2013 11:04:56 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -18,7 +18,7 @@ int main(int narg, char** args) {
 	if(narg == 5) {
 		part_filename = args[4];
 	} else if(narg == 4) {
-		part_filename = "";
+		part_filename = (char*) "";
 	} else {
 		std::cout << "usage: mpas_order <grid_file> <graph_file> <output_prefix> [<partition_file>]" << std::endl;
 		return 1;
