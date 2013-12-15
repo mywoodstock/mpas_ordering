@@ -12,7 +12,7 @@ CXX_INCL = -I$(NETCDF)/include -I$(BOOST)/include
 CXX_LIBS = -L$(NETCDF)/lib -lnetcdf_c++ -lnetcdf
 
 OBJ = netcdf_utils.o mpas_ordering.o mpas_order.o \
-	  mpas_ordering_xyzsort.o mpas_ordering_random.o
+	  mpas_ordering_xyzsort.o mpas_ordering_random.o mpas_ordering_morton.o
 
 
 all: CXX_FLAGS+=$(OPT_FLAGS)
@@ -38,6 +38,9 @@ mpas_ordering_xyzsort.o: mpas_ordering_xyzsort.cpp mpas_ordering.hpp
 	$(CXX) -c $< -o $@ $(CXX_FLAGS) $(CXX_INCL)
 
 mpas_ordering_random.o: mpas_ordering_random.cpp mpas_ordering.hpp
+	$(CXX) -c $< -o $@ $(CXX_FLAGS) $(CXX_INCL)
+
+mpas_ordering_morton.o: mpas_ordering_morton.cpp mpas_ordering.hpp
 	$(CXX) -c $< -o $@ $(CXX_FLAGS) $(CXX_INCL)
 
 mpas_order.o: mpas_order.cpp

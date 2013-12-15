@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Fri 13 Dec 2013 01:40:00 PM PST
+ *  Modified: Sat 14 Dec 2013 08:04:11 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -66,10 +66,10 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 			return reorder_elements_random();
 
 		case MORTON_SFC:
-			return reorder_elements_morton_sfc();
+			return reorder_elements_morton_sfc_new();
 
 		case HILBERT_SFC:
-			return reorder_elements_hilbert_sfc();
+			return false; //reorder_elements_hilbert_sfc();
 
 		case XYZ_SORT:
 			return reorder_elements_xyz_sort();
@@ -505,16 +505,6 @@ bool MPASElementOrder::reorder_data(T* in, T* out, int cell_dim_num, int num_dim
 	} // switch
 	return true;
 } // MPASElementOrder::reorder_data()
-
-
-bool MPASElementOrder::reorder_elements_morton_sfc() {
-	return false;
-} // MPASElementOrder::reorder_elements_morton_sfc()
-
-
-bool MPASElementOrder::reorder_elements_hilbert_sfc() {
-	return false;
-} // MPASElementOrder::reorder_elements_hilbert_sfc()
 
 
 /*struct XYZComp {

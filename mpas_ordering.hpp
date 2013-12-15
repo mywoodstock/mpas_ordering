@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Fri 13 Dec 2013 01:38:01 PM PST
+ *  Modified: Sat 14 Dec 2013 08:01:50 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -43,6 +43,8 @@ class MPASElementOrder {
 		}; // class MPASElementCoord
 
 		typedef MPASElementCoord mpas_element_coord_t;
+		typedef std::vector <mpas_element_coord_t> vec_mpas_element_coord_t;
+		typedef std::pair <mpas_element_coord_t, mpas_element_coord_t> mpas_element_coord_pair_t;
 
 		class MPASElementData {
 			public:
@@ -94,10 +96,20 @@ class MPASElementOrder {
 		bool save_partition_info(std::string);
 		template<typename T> bool reorder_data(T*, T*, int, int, long*);
 
-		bool reorder_elements_morton_sfc();
-		bool reorder_elements_hilbert_sfc();
-		bool reorder_elements_xyz_sort();
 		bool reorder_elements_random();
+		bool reorder_elements_xyz_sort();
+		bool reorder_elements_morton_sfc();
+		bool reorder_elements_morton_sfc_new();
+		//bool reorder_elements_hilbert_sfc();
+
+		mpas_element_coord_pair_t minmax(vec_mpas_element_t::const_iterator&,
+										vec_mpas_element_t::const_iterator&) const;
+		mpas_element_coord_pair_t minmax(vec_mpas_element_coord_t::const_iterator&,
+										vec_mpas_element_coord_t::const_iterator&) const;
+		bool project_points_to_plane(vec_mpas_element_t::const_iterator&,
+										vec_mpas_element_t::const_iterator&,
+										mpas_element_coord_pair_t, vec_mpas_element_coord_t&);
+		uint64_t generate_morton_key(unsigned int, unsigned int, unsigned int, unsigned int);
 
 		// data
 
