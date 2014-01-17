@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Thu 16 Jan 2014 03:05:20 PM PST
+ *  Modified: Thu 16 Jan 2014 05:51:59 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -131,7 +131,7 @@ bool MPASElementOrder::save_graph_info(std::string prefix) {
 
 bool MPASElementOrder::save_partition_info(std::string prefix) {
 	std::stringstream name;
-	name << prefix << "." << num_partitions_ << ".info.part";
+	name << prefix << "." << num_partitions_ << ".info.part." << num_partitions_;
 	std::ofstream parts_f(name.str());
 	for(vec_mpas_element_t::const_iterator ei = element_list_.begin();
 			ei != element_list_.end(); ++ ei) {
