@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Sat 14 Dec 2013 08:04:11 PM PST
+ *  Modified: Thu 16 Jan 2014 03:05:20 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -69,7 +69,7 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 			return reorder_elements_morton_sfc_new();
 
 		case HILBERT_SFC:
-			return false; //reorder_elements_hilbert_sfc();
+			return reorder_elements_hilbert_sfc();
 
 		case XYZ_SORT:
 			return reorder_elements_xyz_sort();
@@ -506,54 +506,6 @@ bool MPASElementOrder::reorder_data(T* in, T* out, int cell_dim_num, int num_dim
 	return true;
 } // MPASElementOrder::reorder_data()
 
-
-/*struct XYZComp {
-	bool operator()(const MPASElementOrder::MPASElementData& a,
-					const MPASElementOrder::MPASElementData& b) {
-		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
-				((a.x_coord_ != b.x_coord_) ? (a.x_coord_ < b.x_coord_) :
-				((a.y_coord_ != b.y_coord_) ? (a.y_coord_ < b.y_coord_) :
-				((a.z_coord_ != b.z_coord_) ? (a.z_coord_ < b.z_coord_) :
-				false)));
-	} // operator()
-};
-
-struct XComp {
-	bool operator()(const MPASElementOrder::MPASElementData& a,
-					const MPASElementOrder::MPASElementData& b) {
-		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
-				(a.x_coord_ < b.x_coord_);
-	} // operator()
-};
-
-struct YComp {
-	bool operator()(const MPASElementOrder::MPASElementData& a,
-					const MPASElementOrder::MPASElementData& b) {
-		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
-				(a.y_coord_ < b.y_coord_);
-	} // operator()
-};
-
-struct ZComp {
-	bool operator()(const MPASElementOrder::MPASElementData& a,
-					const MPASElementOrder::MPASElementData& b) {
-		return (a.partition_num_ != b.partition_num_) ? (a.partition_num_ < b.partition_num_) :
-				(a.z_coord_ < b.z_coord_);
-	} // operator()
-};
-
-bool MPASElementOrder::reorder_elements_xyz_sort() {
-	//ZComp z_comp;
-	//std::sort(element_list_.begin(), element_list_.end(), z_comp);
-	//YComp y_comp;
-	//std::sort(element_list_.begin(), element_list_.end(), y_comp);
-	//XComp x_comp;
-	//std::sort(element_list_.begin(), element_list_.end(), x_comp);
-	XYZComp xyz_comp;
-	std::sort(element_list_.begin(), element_list_.end(), xyz_comp);
-	return reindex_ordering_index();
-} // MPASElementOrder::reorder_elements_xyz_sort()
-*/
 
 bool MPASElementOrder::print_all() {
 	std::cout << "** num_cells: " << num_cells_ << std::endl;

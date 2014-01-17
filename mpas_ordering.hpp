@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Sat 14 Dec 2013 08:01:50 PM PST
+ *  Modified: Thu 16 Jan 2014 02:36:01 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -15,15 +15,7 @@
 #include <vector>
 #include <map>
 
-
-enum sfc_t {
-	NONE,										// no reordering - original
-	RANDOM,
-	MORTON_SFC,									// morton ordering
-	HILBERT_SFC,								// hilbert ordering
-	XYZ_SORT									// sort based on x, y, z coords
-	// ...
-}; // enum sfc_t
+#include "mpas_ordering_typedefs.hpp"
 
 
 class MPASElementOrder {
@@ -96,11 +88,15 @@ class MPASElementOrder {
 		bool save_partition_info(std::string);
 		template<typename T> bool reorder_data(T*, T*, int, int, long*);
 
+		// reordering functions
+
 		bool reorder_elements_random();
 		bool reorder_elements_xyz_sort();
 		bool reorder_elements_morton_sfc();
 		bool reorder_elements_morton_sfc_new();
-		//bool reorder_elements_hilbert_sfc();
+		bool reorder_elements_hilbert_sfc();
+
+		// helpers
 
 		mpas_element_coord_pair_t minmax(vec_mpas_element_t::const_iterator&,
 										vec_mpas_element_t::const_iterator&) const;
@@ -110,6 +106,7 @@ class MPASElementOrder {
 										vec_mpas_element_t::const_iterator&,
 										mpas_element_coord_pair_t, vec_mpas_element_coord_t&);
 		uint64_t generate_morton_key(unsigned int, unsigned int, unsigned int, unsigned int);
+		uint64_t generate_hilbert_key(unsigned int, unsigned int, unsigned int, unsigned int);
 
 		// data
 

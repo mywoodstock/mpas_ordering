@@ -3,7 +3,7 @@
  *
  *  File: mpas_order.cpp
  *  Created: Nov 12, 2013
- *  Modified: Fri 13 Dec 2013 06:09:48 PM PST
+ *  Modified: Thu 16 Jan 2014 02:40:31 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -18,14 +18,18 @@ int main(int narg, char** args) {
 	if(narg == 5) {
 		part_filename = args[4];
 	} else if(narg == 4) {
-		part_filename = (char*) "";
+		//part_filename = (char*) "";
+		std::cout << "usage: mpas_order <grid_file> <graph_file> <output_prefix> <partition_file>" << std::endl;
+		return 1;
 	} else {
-		std::cout << "usage: mpas_order <grid_file> <graph_file> <output_prefix> [<partition_file>]" << std::endl;
+		std::cout << "usage: mpas_order <grid_file> <graph_file> <output_prefix> <partition_file>" << std::endl;
 		return 1;
 	} // if-else
 
 	MPASElementOrder my_ordering(args[1], args[2], part_filename);
-	my_ordering.reorder_elements(MORTON_SFC);
+	//my_ordering.reorder_elements(MORTON_SFC);
+	//my_ordering.reorder_elements(RANDOM);
+	my_ordering.reorder_elements(HILBERT_SFC);
 	//my_ordering.print_all();
 	my_ordering.save_elements_order(args[3]);
 

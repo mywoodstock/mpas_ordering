@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering_morton.cpp
  *  Created: Dec 13, 2013
- *  Modified: Sun 15 Dec 2013 01:23:23 PM PST
+ *  Modified: Thu 16 Jan 2014 11:36:16 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -16,7 +16,7 @@
 typedef MPASElementOrder::mpas_element_coord_pair_t mpas_element_coord_pair_t;
 
 // for a given range in element_list_, find min and max coordinates
-mpas_element_coord_pair_t
+/*mpas_element_coord_pair_t
 MPASElementOrder::minmax(vec_mpas_element_t::const_iterator& begin,
 						vec_mpas_element_t::const_iterator& end) const {
 	double d_max = std::numeric_limits<double>::max();
@@ -136,7 +136,7 @@ bool MPASElementOrder::project_points_to_plane(vec_mpas_element_t::const_iterato
 
 	return true;
 } // MPASElementOrder::project_points_to_plane()
-
+*/
 
 // given x, y and z coordinated as unsigned ints and height, generate the morton order key
 uint64_t MPASElementOrder::generate_morton_key(unsigned int x, unsigned int y, unsigned int z,

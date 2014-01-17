@@ -13,3 +13,5 @@
 *.a
 
 mpas_order
+.*.swp
+test*
