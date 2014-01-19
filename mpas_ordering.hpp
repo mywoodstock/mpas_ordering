@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Thu 16 Jan 2014 02:36:01 PM PST
+ *  Modified: Sat 18 Jan 2014 04:49:29 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -95,6 +95,7 @@ class MPASElementOrder {
 		bool reorder_elements_morton_sfc();
 		bool reorder_elements_morton_sfc_new();
 		bool reorder_elements_hilbert_sfc();
+		bool reorder_elements_peano_sfc();
 
 		// helpers
 
@@ -105,8 +106,11 @@ class MPASElementOrder {
 		bool project_points_to_plane(vec_mpas_element_t::const_iterator&,
 										vec_mpas_element_t::const_iterator&,
 										mpas_element_coord_pair_t, vec_mpas_element_coord_t&);
+		uint64_t decimal_to_ternary(uint64_t);
+		uint64_t ternary_to_decimal(uint64_t);
 		uint64_t generate_morton_key(unsigned int, unsigned int, unsigned int, unsigned int);
 		uint64_t generate_hilbert_key(unsigned int, unsigned int, unsigned int, unsigned int);
+		uint64_t generate_peano_key(unsigned int, unsigned int, unsigned int, unsigned int);
 
 		// data
 

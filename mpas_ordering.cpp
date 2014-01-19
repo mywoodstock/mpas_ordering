@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Thu 16 Jan 2014 05:51:59 PM PST
+ *  Modified: Sat 18 Jan 2014 04:50:16 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -70,6 +70,9 @@ bool MPASElementOrder::reorder_elements(sfc_t sfc) {
 
 		case HILBERT_SFC:
 			return reorder_elements_hilbert_sfc();
+
+		case PEANO_SFC:
+			return reorder_elements_peano_sfc();
 
 		case XYZ_SORT:
 			return reorder_elements_xyz_sort();

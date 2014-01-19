@@ -3,13 +3,14 @@
  *
  *  File: mpas_ordering_utils.cpp
  *  Created: Jan 16, 2014
- *  Modified: Thu 16 Jan 2014 02:36:57 PM PST
+ *  Modified: Sat 18 Jan 2014 04:46:59 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
 
 #include <limits>
 #include <algorithm>
+#include <cmath>
 
 #include "mpas_ordering.hpp"
 
@@ -139,3 +140,23 @@ bool MPASElementOrder::project_points_to_plane(vec_mpas_element_t::const_iterato
 } // MPASElementOrder::project_points_to_plane()
 
 
+uint64_t MPASElementOrder::decimal_to_ternary(uint64_t n) {
+	uint64_t t = 0, ten = 1;
+	for(int i = 0; i < 64 && n != 0; ++ i) {
+		t += (n % 3) * ten;
+		n = n / 3;
+		ten *= 10;
+	} // for
+	return t;
+} // MPASElementOrder::decimal_to_ternary()
+
+
+uint64_t MPASElementOrder::ternary_to_decimal(uint64_t n) {
+	uint64_t d = 0, three = 1;
+	for(int i = 0; i < 64; ++ i) {
+		d += (n % 10) * three;
+		three *= 3;
+		n /= 10;
+	} // for
+	return d;
+} // MPASElementOrder::decimal_to_ternary()

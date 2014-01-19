@@ -3,7 +3,7 @@
  *
  *  File: mpas_order.cpp
  *  Created: Nov 12, 2013
- *  Modified: Thu 16 Jan 2014 02:40:31 PM PST
+ *  Modified: Sat 18 Jan 2014 04:51:46 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -29,7 +29,8 @@ int main(int narg, char** args) {
 	MPASElementOrder my_ordering(args[1], args[2], part_filename);
 	//my_ordering.reorder_elements(MORTON_SFC);
 	//my_ordering.reorder_elements(RANDOM);
-	my_ordering.reorder_elements(HILBERT_SFC);
+	//my_ordering.reorder_elements(HILBERT_SFC);
+	my_ordering.reorder_elements(PEANO_SFC);
 	//my_ordering.print_all();
 	my_ordering.save_elements_order(args[3]);
 

@@ -13,7 +13,7 @@ CXX_LIBS = -L$(NETCDF)/lib -lnetcdf_c++ -lnetcdf
 
 OBJ = netcdf_utils.o mpas_ordering.o mpas_order.o mpas_ordering_utils.o \
 	  mpas_ordering_xyzsort.o mpas_ordering_random.o mpas_ordering_morton.o \
-	  mpas_ordering_hilbert.o
+	  mpas_ordering_hilbert.o mpas_ordering_peano.o
 
 BIN = mpas_order
 
