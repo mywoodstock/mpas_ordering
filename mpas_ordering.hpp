@@ -3,7 +3,7 @@
  *
  *  File: mpas_ordering.hpp
  *  Created: Nov 12, 2013
- *  Modified: Sat 18 Jan 2014 04:49:29 PM PST
+ *  Modified: Sun 19 Jan 2014 10:17:23 PM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -56,14 +56,38 @@ class MPASElementOrder {
 
 			bool operator<(const MPASElementData& b) const {
 				return (partition_num_ != b.partition_num_) ?
-							(partition_num_ < b.partition_num_) : (ordering_index_ < b.ordering_index_);
+						(partition_num_ < b.partition_num_) : (ordering_index_ < b.ordering_index_);
 			} // operator<()
 
 			bool print_all() const;
 		}; // class MPASElementData
 
+		class MPASEdgeData {
+			public:
+
+			unsigned int partition_num_;	// partition number
+			unsigned int ordering_index_;	// current ordering index
+			unsigned int original_index_;	// original index in grid file
+
+			unsigned int cell_index_[2];	// cells on this edge (original index as in grid file)
+
+			MPASEdgeData() { }
+			~MPASEdgeData() { }
+
+			bool operator<(const MPASEdgeData& b) const {
+				return (partition_num_ != b.partition_num_) ?
+						(partition_num_ < b.partition_num_) : (ordering_index_ < b.ordering_index_);
+			} // operator<()
+
+			bool print_all() const;
+		}; // class MPASEdgeData
+
+		// TODO: merge above two classes into one ...
+
 		typedef MPASElementData mpas_element_t;
 		typedef std::vector <mpas_element_t> vec_mpas_element_t;
+		typedef MPASEdgeData mpas_edge_t;
+		typedef std::vector <mpas_edge_t> vec_mpas_edge_t;
 		typedef std::map <unsigned int, unsigned int> map_original_index_t;
 
 	public:
@@ -81,12 +105,15 @@ class MPASElementOrder {
 
 		bool init();
 		bool generate_original_index_map();
+		bool generate_edge_original_index_map();
 		bool generate_partition_list();
 		bool reindex_ordering_index();
+		bool reorder_edges();
 		bool reorder_grid(std::string);
 		bool save_graph_info(std::string);
 		bool save_partition_info(std::string);
 		template<typename T> bool reorder_data(T*, T*, int, int, long*);
+		template<typename T> bool reorder_edge_data(T*, T*, int, int, long*);
 
 		// reordering functions
 
@@ -120,10 +147,16 @@ class MPASElementOrder {
 
 		unsigned int num_cells_;				// number of cells
 		unsigned int num_partitions_;			// number of graph partitions
-		unsigned int num_edges_;
+		unsigned int num_edges_;				// number of edges
+
 		vec_mpas_element_t element_list_;		// list of all elements ordered
-		map_original_index_t original_index_map_;	// map from current index to current index in list
+		map_original_index_t original_index_map_;	// map from current index to original index in list
 		map_original_index_t current_index_map_;	// map from original_index_ to current index in list
+
+		vec_mpas_edge_t edge_list_;				// list of all edge data
+		map_original_index_t edge_original_index_map_;	// from current index to original index in list
+		map_original_index_t edge_current_index_map_;	// from original_index_ to current index in list
+
 		partition_map_t partition_list_;		// list of partitions with elements' original index
 
 }; // class MPASElementOrder
