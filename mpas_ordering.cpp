@@ -3,7 +3,6 @@
  *
  *  File: mpas_ordering.cpp
  *  Created: Nov 12, 2013
- *  Modified: Mon 20 Jan 2014 09:14:20 AM PST
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -104,8 +103,11 @@ bool MPASElementOrder::save_elements_order(std::string filename_prefix) {
 #endif
 
 	// reorder stuff in the grid and write a new grid file
+  std::cout << "** reordering and writing new grid file ..." << std::endl;
 	reorder_grid(filename_prefix);
+  std::cout << "** writing new graph file ..." << std::endl;
 	save_graph_info(filename_prefix);
+  std::cout << "** writing new partition file ..." << std::endl;
 	if(num_partitions_ > 1) save_partition_info(filename_prefix);
 
 	return true;
@@ -371,7 +373,7 @@ bool MPASElementOrder::reorder_grid(std::string prefix) {
 		grid_name << prefix << "." << num_partitions_ << ".nc";
 	else
 		grid_name << prefix << ".nc";
-	#ifdef _64BITOPFFSET
+	#ifdef _64BITOFFSET
 		NcFile ncid(netcdf_grid_filename_.c_str(), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits);
 		NcFile out_ncid(grid_name.str().c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 	#else

@@ -3,7 +3,7 @@
  *
  *  File: mpas_order.cpp
  *  Created: Nov 12, 2013
- *  Modified: Mon 20 Jan 2014 09:06:45 AM PST
+ *  Modified: Mon 13 Oct 2014 08:00:41 AM PDT
  *
  *  Author: Abhinav Sarje <asarje@lbl.gov>
  */
@@ -43,7 +43,9 @@ int main(int narg, char** args) {
 					<< "'xyz', 'random', 'hilbert', 'morton', 'peano'" << std::endl;
 		return 1;
 	} // if-else
+  std::cout << "** reordering ..." << std::endl;
 	my_ordering.reorder_elements(type);
+  std::cout <<"** saving result ..." << std::endl;
 	my_ordering.save_elements_order(args[3]);
 
 	return 0;

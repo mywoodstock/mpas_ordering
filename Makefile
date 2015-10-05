@@ -5,8 +5,8 @@ BOOST = /usr/local/boost
 CXX = g++
 
 OPT_FLAGS = -O3
-DEBUG_FLAGS = -g
-CXX_FLAGS = -std=c++11
+DEBUG_FLAGS = -g -DDEBUG
+CXX_FLAGS = -std=c++11 -D_64BITOFFSET
 
 CXX_INCL = -I$(NETCDF)/include -I$(BOOST)/include
 CXX_LIBS = -L$(NETCDF)/lib -lnetcdf_c++ -lnetcdf
