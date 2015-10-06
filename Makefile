@@ -1,6 +1,6 @@
 
 NETCDF = /usr
-BOOST = /usr/local/boost
+#BOOST = /usr/local/boost
 
 CXX = g++
 
@@ -8,7 +8,7 @@ OPT_FLAGS = -O3
 DEBUG_FLAGS = -g -DDEBUG
 CXX_FLAGS = -std=c++11 -D_64BITOFFSET
 
-CXX_INCL = -I$(NETCDF)/include -I$(BOOST)/include
+CXX_INCL = -I$(NETCDF)/include #-I$(BOOST)/include
 CXX_LIBS = -L$(NETCDF)/lib -lnetcdf_c++ -lnetcdf
 
 OBJ = netcdf_utils.o mpas_ordering.o mpas_order.o mpas_ordering_utils.o \
